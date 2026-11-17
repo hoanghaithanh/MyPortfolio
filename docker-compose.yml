@@ -1,0 +1,10 @@
+services:
+  portfolio:
+    build: .
+    image: myportfolio:latest
+    container_name: portfolio
+    restart: unless-stopped
+    # Cloudflare Tunnel points at http://localhost:8188 on the homelab.
+    # Set PORTFOLIO_BIND=0.0.0.0 if cloudflared runs in another container or host.
+    ports:
+      - "${PORTFOLIO_BIND:-127.0.0.1}:${PORTFOLIO_PORT:-8188}:80"
