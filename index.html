@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thanh Hoang, Data Engineer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Thanh Hoang is a data engineer in Toronto who builds lakehouse pipelines with Dagster, PySpark and Delta Lake.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column with a wide hero; the medallion tiers (raw, bronze, silver, gold) are the colour system. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --ink: #142033;
+  --muted: #56647a;
+  --line: #d8dee8;
+  --accent: #1f5fbf;
+  --raw: #7b8798;
+  --bronze: #a8642e;
+  --silver: #6f8095;
+  --gold: #a57f12;
+  --todo-bg: #fff4d6;
+  --todo-ink: #7a5300;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  --s-1: 0.8125rem; --s0: 1rem; --s1: 1.25rem; --s2: 1.75rem; --s3: 2.5rem; --s4: clamp(2.6rem, 6vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1420; --surface: #141e2d; --ink: #e6ebf2; --muted: #9aa7ba; --line: #253246;
+    --accent: #6ea2ff; --raw: #8a96a8; --bronze: #d38a52; --silver: #a9b8ca; --gold: #e0b43c;
+    --todo-bg: #3a2e10; --todo-ink: #f3cf73; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1420; --surface: #141e2d; --ink: #e6ebf2; --muted: #9aa7ba; --line: #253246;
+  --accent: #6ea2ff; --raw: #8a96a8; --bronze: #d38a52; --silver: #a9b8ca; --gold: #e0b43c;
+  --todo-bg: #3a2e10; --todo-ink: #f3cf73; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: var(--s0); line-height: 1.6;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h2 { font-size: var(--s3); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: var(--s1); font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font-family: var(--f-mono); font-size: var(--s-1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.mono { font-family: var(--f-mono); }
+.todo {
+  background: var(--todo-bg); color: var(--todo-ink); border: 1px dashed currentColor;
+  border-radius: 4px; padding: 0 0.3em; font-family: var(--f-mono); font-size: 0.85em;
+}
+
+/* Top bar */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
+.brand { font-family: var(--f-display); font-weight: 800; color: var(--ink); text-decoration: none; font-size: 1.1rem; }
+nav.links { display: flex; gap: 20px; flex-wrap: wrap; }
+nav.links a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
+nav.links a:hover { color: var(--ink); }
+@media (max-width: 560px) { nav.links { gap: 14px; } nav.links a:nth-child(n+4) { display: none; } }
+
+/* Hero */
+.hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding-block: 64px 48px; }
+.hero .copy { min-width: 0; display: grid; gap: 20px; }
+.hero h1 { font-size: var(--s4); font-weight: 800; letter-spacing: -0.025em; }
+.hero h1 .tier { background: linear-gradient(90deg, var(--bronze), var(--silver) 50%, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero .lede { font-size: 1.15rem; color: var(--muted); max-width: 34em; }
+.native { font-size: var(--s-1); color: var(--muted); }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn:hover { border-color: var(--accent); }
+@media (max-width: 860px) { .hero .wrap { grid-template-columns: 1fr; padding-block: 40px 32px; gap: 32px; } }
+
+/* Pipeline figure */
+.pipeline { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0; }
+.pipeline svg { display: block; width: 100%; height: auto; }
+.pipeline .node rect { fill: var(--bg); stroke-width: 1.5; }
+.pipeline .node text { font-family: var(--f-mono); font-size: 13px; fill: var(--ink); }
+.pipeline .node .sub { font-size: 10.5px; fill: var(--muted); }
+.pipeline path.edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.pipeline .packet { offset-rotate: 0deg; animation: flow 3.6s linear infinite; }
+@keyframes flow { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+.runlog { margin-top: 12px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); display: grid; gap: 2px; overflow-x: auto; white-space: nowrap; }
+.runlog .ok { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .pipeline .packet { animation: none; offset-distance: 50%; } }
+
+/* Facts strip */
+.facts { border-block: 1px solid var(--line); background: var(--surface); }
+.facts .wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-block: 24px; }
+.fact b { display: block; font-family: var(--f-display); font-size: var(--s2); font-weight: 800; font-variant-numeric: tabular-nums; }
+.fact span { color: var(--muted); font-size: 0.92rem; }
+@media (max-width: 720px) { .facts .wrap { grid-template-columns: repeat(2, 1fr); } }
+
+section.block .wrap { padding-block: 72px 24px; display: grid; gap: 28px; }
+.section-head { display: grid; gap: 10px; max-width: 46em; }
+.section-head p { color: var(--muted); }
+
+/* Case study */
+.case { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.case-top { padding: 28px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; }
+.case-top > * { min-width: 0; }
+.case-top .pitch { display: grid; gap: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-content: start; }
+.numbers div { border-left: 3px solid var(--line); padding-left: 12px; }
+.numbers b { display: block; font-family: var(--f-display); font-size: var(--s2); font-variant-numeric: tabular-nums; }
+.numbers span { font-size: 0.88rem; color: var(--muted); }
+.numbers .t-bronze { border-color: var(--bronze); } .numbers .t-silver { border-color: var(--silver); }
+.numbers .t-gold { border-color: var(--gold); } .numbers .t-raw { border-color: var(--raw); }
+.layers { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); }
+.layer { padding: 20px 22px; border-right: 1px solid var(--line); display: grid; gap: 6px; align-content: start; }
+.layer:last-child { border-right: 0; }
+.layer .tag { font-family: var(--f-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+.layer p { font-size: 0.92rem; color: var(--muted); }
+.l-raw .tag { color: var(--raw); } .l-bronze .tag { color: var(--bronze); } .l-silver .tag { color: var(--silver); } .l-gold .tag { color: var(--gold); }
+.status { font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.status.done::before { content: "● "; color: var(--accent); }
+.status.next::before { content: "○ "; }
+@media (max-width: 860px) { .case-top { grid-template-columns: 1fr; } .layers { grid-template-columns: 1fr 1fr; } .layer:nth-child(2) { border-right: 0; } .layer:nth-child(-n+2) { border-bottom: 1px solid var(--line); } }
+@media (max-width: 480px) { .layers { grid-template-columns: 1fr; } .layer { border-right: 0; border-bottom: 1px solid var(--line); } .layer:last-child { border-bottom: 0; } }
+.case-foot { border-top: 1px solid var(--line); padding: 20px 28px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.case-foot > div { display: grid; gap: 6px; min-width: 0; }
+.case-foot p { font-size: 0.92rem; color: var(--muted); }
+@media (max-width: 760px) { .case-foot { grid-template-columns: 1fr; } }
+
+/* Projects */
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.proj { border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 10px; align-content: start; background: var(--bg); min-width: 0; }
+.proj p { color: var(--muted); font-size: 0.95rem; }
+.proj .row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.proj a.repo { font-family: var(--f-mono); font-size: 12px; }
+@media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+.offclock { color: var(--muted); font-size: 0.95rem; }
+
+/* Experience */
+.timeline { display: grid; gap: 0; border-left: 2px solid var(--line); margin-left: 6px; }
+.job { position: relative; padding: 0 0 32px 28px; display: grid; gap: 8px; }
+.job::before { content: ""; position: absolute; left: -8px; top: 6px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 2px solid var(--accent); }
+.job .when { font-family: var(--f-mono); font-size: var(--s-1); color: var(--muted); }
+.job .where { color: var(--muted); }
+.job ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; max-width: 46em; }
+
+/* Skills */
+.skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px 32px; }
+.skills > div { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.skills h3 { font-size: 1rem; }
+@media (max-width: 760px) { .skills { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 460px) { .skills { grid-template-columns: 1fr; } }
+
+/* Lead */
+.lead-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 32px; }
+.lead-list > div { display: grid; gap: 6px; min-width: 0; }
+.lead-list p { color: var(--muted); }
+@media (max-width: 720px) { .lead-list { grid-template-columns: 1fr; } }
+
+/* Education + contact */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.two > div { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.two dl { margin: 0; display: grid; gap: 12px; }
+.two dt { font-weight: 600; } .two dd { margin: 0; color: var(--muted); }
+@media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
+.contact { background: var(--ink); color: var(--bg); margin-top: 72px; }
+.contact .wrap { padding-block: 56px; display: grid; gap: 16px; }
+.contact h2 { color: var(--bg); }
+.contact p { color: color-mix(in srgb, var(--bg) 75%, var(--ink)); max-width: 40em; }
+.contact .cta .btn { background: transparent; color: var(--bg); border-color: color-mix(in srgb, var(--bg) 40%, var(--ink)); }
+.contact .todo { background: var(--todo-bg); color: var(--todo-ink); }
+footer .wrap { padding-block: 24px; color: var(--muted); font-size: var(--s-1); }
+</style>
+<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}html{scroll-behavior:smooth}</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">Thanh Hoang</a>
+    <nav class="links" aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#projects">Projects</a>
+      <a href="#experience">Experience</a>
+      <a href="#skills">Skills</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="copy">
+        <span class="eyebrow">Data engineer · Toronto, Canada</span>
+        <h1>I build pipelines that turn raw filings into <span class="tier">trusted gold tables</span>.</h1>
+        <p class="lede">I design lakehouses with Dagster, PySpark and Delta Lake, and I care most about the parts that decide whether people can trust the numbers: idempotent backfills, data quality checks and clear design records.</p>
+        <p class="native">Hoàng Hải Thanh · Working in English, Japanese and Vietnamese</p>
+        <div class="cta">
+          <a class="btn primary" href="#work">See the flagship project</a>
+          <a class="btn" href="https://github.com/hoanghaithanh" target="_blank" rel="noopener">GitHub</a>
+          <a class="btn" href="#contact">LinkedIn <span class="todo">TODO: URL</span></a>
+          <a class="btn" href="#contact">Résumé PDF <span class="todo">TODO</span></a>
+        </div>
+      </div>
+
+      <figure class="pipeline" aria-label="Diagram of the SEC Holdings Lakehouse pipeline from raw SEC zips to gold marts">
+        <svg viewBox="0 0 440 250" role="img" aria-hidden="true">
+          <path id="e1" class="edge" d="M100 52 H170"/>
+          <path id="e2" class="edge" d="M270 52 C320 52 320 125 270 125 H270"/>
+          <path id="e3" class="edge" d="M170 125 C120 125 120 198 170 198"/>
+          <path id="e4" class="edge" d="M270 198 H340"/>
+          <g class="node"><rect x="10" y="30" width="90" height="44" rx="8" style="stroke:var(--raw)"/><text x="22" y="50">raw</text><text class="sub" x="22" y="65">SEC zips</text></g>
+          <g class="node"><rect x="170" y="30" width="100" height="44" rx="8" style="stroke:var(--bronze)"/><text x="182" y="50">bronze</text><text class="sub" x="182" y="65">7 Delta tables</text></g>
+          <g class="node"><rect x="170" y="103" width="100" height="44" rx="8" style="stroke:var(--silver)"/><text x="182" y="123">silver</text><text class="sub" x="182" y="138">typed, deduped</text></g>
+          <g class="node"><rect x="170" y="176" width="100" height="44" rx="8" style="stroke:var(--gold)"/><text x="182" y="196">entities</text><text class="sub" x="182" y="211">managers, CUSIPs</text></g>
+          <g class="node"><rect x="340" y="176" width="90" height="44" rx="8" style="stroke:var(--gold)"/><text x="352" y="196">gold</text><text class="sub" x="352" y="211">marts</text></g>
+          <circle class="packet" r="4.5" style="fill:var(--bronze);offset-path:path('M100 52 H170')"/>
+          <circle class="packet" r="4.5" style="fill:var(--silver);offset-path:path('M270 52 C320 52 320 125 270 125 H270');animation-delay:-1.2s"/>
+          <circle class="packet" r="4.5" style="fill:var(--gold);offset-path:path('M170 125 C120 125 120 198 170 198');animation-delay:-2.4s"/>
+          <circle class="packet" r="4.5" style="fill:var(--gold);offset-path:path('M270 198 H340');animation-delay:-0.6s"/>
+        </svg>
+        <div class="runlog" aria-hidden="true">
+          <span>▸ materialize bronze_13f  partition=2024q3</span>
+          <span>▸ asset checks DQ1…DQ9 <span class="ok">9 passed</span></span>
+          <span>▸ replaceWhere quarter='2024q3'  <span class="ok">idempotent</span></span>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="facts" aria-label="At a glance">
+    <div class="wrap">
+      <div class="fact"><b>2018</b><span>Building data and reporting pipelines since</span></div>
+      <div class="fact"><b>3</b><span>Countries worked in: Vietnam, Japan, Canada</span></div>
+      <div class="fact"><b>54</b><span>Quarterly SEC partitions in my lakehouse backfill</span></div>
+      <div class="fact"><b>154</b><span>Automated tests on the flagship project, CI green</span></div>
+    </div>
+  </section>
+
+  <section class="block" id="work">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Flagship project</span>
+        <h2>SEC Holdings Lakehouse</h2>
+        <p>Every quarter, US investment managers with more than $100M under management file Form 13F with the SEC. The data is public but messy: amendments restate earlier filings, value units changed in 2023, and the same manager or security shows up under many names. I am building a lakehouse that makes it queryable and trustworthy, end to end, on my own hardware.</p>
+      </div>
+
+      <article class="case">
+        <div class="case-top">
+          <div class="pitch">
+            <h3>Medallion lakehouse on Dagster, PySpark and Delta Lake</h3>
+            <p>One Docker image runs every role (Dagster webserver and daemon, Spark master and workers), so versions match across dev and staging. Code reaches the homelab UAT environment only through CI, and each milestone starts with a spec and architecture decision records.</p>
+            <div class="chips">
+              <span class="chip">Dagster</span><span class="chip">PySpark</span><span class="chip">Delta Lake</span>
+              <span class="chip">S3 (RustFS)</span><span class="chip">Postgres</span><span class="chip">Docker Compose</span>
+              <span class="chip">GitHub Actions</span><span class="chip">mypy --strict</span><span class="chip">Cloudflare Tunnel</span>
+            </div>
+            <p><a href="https://github.com/hoanghaithanh/sec-holdings-lakehouse" target="_blank" rel="noopener">github.com/hoanghaithanh/sec-holdings-lakehouse</a></p>
+          </div>
+          <div class="numbers">
+            <div class="t-raw"><b>2013q2→</b><span>Filing history covered by the backfill</span></div>
+            <div class="t-bronze"><b>7</b><span>Bronze Delta tables per data set</span></div>
+            <div class="t-silver"><b>DQ1–9</b><span>Data quality checks as Dagster asset checks</span></div>
+            <div class="t-gold"><b>2 × 10</b><span>Spark worker cores on the homelab cluster</span></div>
+          </div>
+        </div>
+
+        <div class="layers">
+          <div class="layer l-raw"><span class="tag">Raw</span><p>A rate-limited SEC client that respects EDGAR fair-access rules downloads each quarterly zip once and lands it immutably.</p><span class="status done">Shipped</span></div>
+          <div class="layer l-bronze"><span class="tag">Bronze</span><p>Each zip unpacks into 7 Delta tables with ingestion metadata. Re-running a partition replaces only that partition.</p><span class="status done">Shipped</span></div>
+          <div class="layer l-silver"><span class="tag">Silver</span><p>Typed and deduplicated holdings that handle 13F/A amendments, the 2023 value-unit change and confidential omissions.</p><span class="status next">Next, Jan 2027</span></div>
+          <div class="layer l-gold"><span class="tag">Gold</span><p>Entity resolution for managers and CUSIPs with measured precision and recall, then marts for quarter-over-quarter position changes.</p><span class="status next">Feb to Mar 2027</span></div>
+        </div>
+
+        <div class="case-foot">
+          <div><h3>Decisions on record</h3><p>ADR-001 lakehouse over warehouse. ADR-002 one partition per SEC data set. ADR-003 a rate-limited client that downloads once.</p></div>
+          <div><h3>Environments</h3><p>Dev on my PC with 1 to 2 years of data. UAT on a homelab Xeon (14 cores, 64 GB) that auto-deploys every merge to main after CI passes.</p></div>
+          <div><h3>Why this domain</h3><p>My day job is at a shareholder advisory firm, so ownership data is the problem space I know best.</p></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="block" id="projects">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">More work</span>
+        <h2>Other projects</h2>
+      </div>
+      <div class="grid">
+        <article class="proj">
+          <div class="row"><h3>Spark Playbook</h3><a class="repo" href="https://github.com/hoanghaithanh/Spark-Playbook" target="_blank" rel="noopener">repo</a></div>
+          <p>A self-hosted web app for practising PySpark at interview depth. It spins up a real Spark standalone cluster in Docker, generates skewed data large enough to cause spill and shuffle, and checks your reasoning against the actual query plan and metrics.</p>
+          <div class="chips"><span class="chip">PySpark</span><span class="chip">Spark standalone</span><span class="chip">JupyterLab</span><span class="chip">Docker</span></div>
+        </article>
+        <article class="proj">
+          <div class="row"><h3>AddressRefine</h3><a class="repo" href="https://github.com/hoanghaithanh/AddressRefine" target="_blank" rel="noopener">repo</a></div>
+          <p>A FastAPI app that finds duplicate addresses written in different formats. Upload a CSV, map columns, and review candidates from fingerprint, n-gram, Levenshtein and compression-distance (PPM/NCD) matchers before merging.</p>
+          <div class="chips"><span class="chip">Python</span><span class="chip">FastAPI</span><span class="chip">Fuzzy matching</span><span class="chip">pytest</span></div>
+        </article>
+        <article class="proj">
+          <div class="row"><h3>SDLC agent team</h3><a class="repo" href="https://github.com/hoanghaithanh/claude-sdlc-agents" target="_blank" rel="noopener">repo</a></div>
+          <p>A drop-in set of AI coding subagents, one per engineering role, from requirements analyst to security auditor. Reviewers are read-only by design, and models are tiered so deep reasoning is only paid for where it matters.</p>
+          <div class="chips"><span class="chip">AI-assisted delivery</span><span class="chip">Code review</span><span class="chip">Process design</span></div>
+        </article>
+        <article class="proj">
+          <div class="row"><h3>Credit scorecard app</h3><a class="repo" href="https://github.com/hoanghaithanh/scorecard_app" target="_blank" rel="noopener">repo</a></div>
+          <p>A framework for building an accurate credit scorecard, paired with a deployment design for serving high request volumes. <span class="todo">TODO: one line on your role and the result</span></p>
+          <div class="chips"><span class="chip">Python</span><span class="chip">Modelling</span><span class="chip">Model serving</span></div>
+        </article>
+      </div>
+      <p class="offclock">Off the clock I build an ESP32-CAM rover with browser joystick control and a 3D monster-truck game for my son.</p>
+    </div>
+  </section>
+
+  <section class="block" id="experience">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Experience</span>
+        <h2>Where I've worked</h2>
+      </div>
+      <div class="timeline">
+        <div class="job">
+          <span class="when">Sep 2025 – present</span>
+          <h3>Data Engineer</h3>
+          <span class="where">Kingsdale Advisors · Toronto, ON · shareholder advisory and proxy solicitation</span>
+          <ul>
+            <li><span class="todo">TODO: biggest pipeline or platform you own, with scale (rows, sources, refresh)</span></li>
+            <li><span class="todo">TODO: one result with a number (hours saved, latency, cost, accuracy)</span></li>
+            <li><span class="todo">TODO: stack used here (e.g. Azure, Databricks, SQL Server, Power BI)</span></li>
+          </ul>
+        </div>
+        <div class="job">
+          <span class="when">Aug 2024 – 2025 <span class="todo">TODO: confirm dates</span></span>
+          <h3><span class="todo">TODO: title</span></h3>
+          <span class="where">Jarvis Consulting Group · consultant placed at CIBC</span>
+          <ul>
+            <li><span class="todo">TODO: what you built for CIBC and its impact</span></li>
+          </ul>
+        </div>
+        <div class="job">
+          <span class="when">Nov 2018 – Nov 2022</span>
+          <h3>Data Engineer</h3>
+          <span class="where">HR Solution · Japan</span>
+          <ul>
+            <li>Automated recurring report creation and built dashboards in Power BI, Tableau and Excel.</li>
+            <li>Set up web analytics tracking and conversion events in Google Analytics 4.</li>
+            <li><span class="todo">TODO: one result with a number</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="skills">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Toolbox</span>
+        <h2>Skills</h2>
+      </div>
+      <div class="skills">
+        <div><h3>Processing</h3><div class="chips"><span class="chip">PySpark</span><span class="chip">Spark tuning</span><span class="chip">SQL</span><span class="chip">Python</span></div></div>
+        <div><h3>Orchestration</h3><div class="chips"><span class="chip">Dagster</span><span class="chip">Partitions and backfills</span><span class="chip">Asset checks</span></div></div>
+        <div><h3>Storage</h3><div class="chips"><span class="chip">Delta Lake</span><span class="chip">Medallion design</span><span class="chip">S3-compatible stores</span><span class="chip">Postgres</span></div></div>
+        <div><h3>Platform and DevOps</h3><div class="chips"><span class="chip">Docker Compose</span><span class="chip">GitHub Actions</span><span class="chip">Self-hosted runners</span><span class="chip">Cloudflare Tunnel</span></div></div>
+        <div><h3>Data quality</h3><div class="chips"><span class="chip">Idempotent loads</span><span class="chip">Record linkage</span><span class="chip">pytest</span><span class="chip">mypy</span></div></div>
+        <div><h3>Analytics</h3><div class="chips"><span class="chip">Power BI</span><span class="chip">Tableau</span><span class="chip">GA4</span><span class="chip">Snowflake</span></div></div>
+      </div>
+      <p class="offclock"><span class="todo">TODO: add the cloud platform you use at work (Azure, AWS or GCP) and any certifications</span></p>
+    </div>
+  </section>
+
+  <section class="block" id="lead">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Senior and lead</span>
+        <h2>How I run a data project</h2>
+        <p>These habits are visible in my repositories, not just claimed here.</p>
+      </div>
+      <div class="lead-list">
+        <div><h3>Decide in writing</h3><p>Every milestone starts with a spec and architecture decision records, so the reasoning outlives the meeting and new people can catch up alone.</p></div>
+        <div><h3>Ship in small, reviewed slices</h3><p>Work moves in small pull requests with code review on each one and a demoable result at the end of every milestone.</p></div>
+        <div><h3>Test the data, not only the code</h3><p>Asset checks for nulls, uniqueness, row-count drift and value sanity run on the full dataset before a milestone counts as done.</p></div>
+        <div><h3>Write for the next engineer</h3><p>I write junior-friendly explainers and runbooks next to the code, and I mentor newcomers on résumés and career direction. <span class="todo">TODO: people you have led or mentored at work</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="education">
+    <div class="wrap">
+      <div class="two">
+        <div>
+          <span class="eyebrow">Education</span>
+          <dl>
+            <div><dt>Applied Modelling and Quantitative Methods (Big Data Analytics)</dt><dd>Trent University, Ontario · 2022 – <span class="todo">TODO: year and degree</span></dd></div>
+            <div><dt>Information Technology, HEDSPI programme</dt><dd>Hanoi University of Science and Technology · 2013 – 2018</dd></div>
+          </dl>
+        </div>
+        <div>
+          <span class="eyebrow">Languages and certificates</span>
+          <dl>
+            <div><dt>English</dt><dd>Professional working · IELTS 7.0</dd></div>
+            <div><dt>Japanese</dt><dd>Professional working · JLPT N2</dd></div>
+            <div><dt>Vietnamese</dt><dd>Native</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap">
+      <span class="eyebrow" style="color:inherit;opacity:.7">Contact</span>
+      <h2>Hiring for a senior or lead data engineer?</h2>
+      <p>I'm happy to walk you through the lakehouse end to end, from the SEC client to the asset checks. The fastest way to reach me is email.</p>
+      <div class="cta">
+        <span class="btn">Email <span class="todo">TODO: address to show</span></span>
+        <span class="btn">LinkedIn <span class="todo">TODO: URL</span></span>
+        <a class="btn" href="https://github.com/hoanghaithanh" target="_blank" rel="noopener">github.com/hoanghaithanh</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Thanh Hoang · Built as a static page, hosted on GitHub Pages.</div>
+</footer>
+</body>
+</html>
